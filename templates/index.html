@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Importer | Connect to Database</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(209, 213, 219, 0.3);
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(99, 102, 241, 0.2);
+        }
+        .notification {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="h-full flex items-center justify-center p-4 py-8">
+    <div class="max-w-2xl w-full card rounded-2xl overflow-hidden shadow-xl animate__animated animate__fadeIn">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white rounded-t-2xl"> <!-- Added p-8 and rounded-t-2xl -->
+            <div class="flex items-center justify-between">
+                <div class="mt-10"> <!-- Added mt-2 for spacing -->
+                    <h1 class="text-3xl font-bold">Data Importer</h1>
+                    <p class="opacity-90 mt-2">Connect to your database to begin importing data</p> <!-- Increased mt-1 to mt-2 -->
+                </div>
+                <lottie-player src="https://assets1.lottiefiles.com/packages/lf20_iv4dsx3q.json" background="transparent" speed="1" style="width: 80px; height: 80px;" loop autoplay class="mt-10"></lottie-player>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+            <!-- Notifications -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="notification mb-6 rounded-lg p-4 {% if message.type == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    {% if message.type == 'error' %}
+                                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium {% if message.type == 'error' %}text-red-800{% else %}text-green-800{% endif %}">
+                                        {{ message.title }}
+                                    </h3>
+                                    <div class="mt-1 text-sm {% if message.type == 'error' %}text-red-700{% else %}text-green-700{% endif %}">
+                                        <p>{{ message.message }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Form -->
+            <form action="{{ url_for('connect') }}" method="post" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Database Type -->
+                    <div>
+                        <label for="db_type" class="block text-sm font-medium text-gray-700 mb-1">Database Type</label>
+                        <div class="relative">
+                            <select id="db_type" name="db_type" required
+                                    class="input-field w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border pr-10">
+                                <option value="" disabled selected>Select database</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="postgresql">PostgreSQL</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <!-- Port -->
+                    <div>
+                        <label for="port" class="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                        <input type="number" id="port" name="port" required placeholder="3306 / 5432"
+                               class="input-field w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border">
+                    </div>
+                </div>
+
+                <!-- Host -->
+                <div>
+                    <label for="host" class="block text-sm font-medium text-gray-700 mb-1">Host</label>
+                    <input type="text" id="host" name="host" required placeholder="localhost or IP address"
+                           class="input-field w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border">
+                </div>
+
+                <!-- Username -->
+                <div>
+                    <label for="user" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text" id="user" name="user" required placeholder="Database username"
+                           class="input-field w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border">
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Database password"
+                           class="input-field w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border">
+                </div>
+
+                <!-- Database Name -->
+                <div>
+                    <label for="database" class="block text-sm font-medium text-gray-700 mb-1">Database Name</label>
+                    <input type="text" id="database" name="database" required placeholder="Your database name"
+                           class="input-field w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit"
+                            class="btn-primary w-full text-white font-semibold py-3 px-4 rounded-lg shadow-md flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
+                        </svg>
+                        Connect to Database
+                    </button>
+                </div>
+            </form>
+
+            <!-- Footer -->
+            <div class="mt-8 pt-5 border-t border-gray-200 text-center">
+                <p class="text-sm text-gray-500">
+                    Need help? <a href="https://www.linkedin.com/in/bhushan148" class="font-medium text-indigo-600 hover:text-indigo-500">Contact support</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add animation to form elements
+        document.querySelectorAll('.input-field').forEach((field, index) => {
+            field.style.animationDelay = `${index * 0.1}s`;
+            field.classList.add('animate__animated', 'animate__fadeInUp');
+        });
+
+        // Add focus styles
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.querySelector('label').classList.add('text-indigo-600');
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.querySelector('label').classList.remove('text-indigo-600');
+            });
+        });
+    </script>
+</body>
+</html>
